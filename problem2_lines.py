@@ -8,19 +8,15 @@ import helpers
 
 
 def ransac(data):
+    #put the contour points into a list
     df = np.vstack(data).squeeze() 
     x = []
     y = []
-    print(len(df))
     for i in range(0,len(df)-1):
         x.append(df[i][1])
         y.append(df[i][0])
 
-    
-    #plot data set points
-    plt.scatter(x,y)
-
-    # make x into 3x250 matrix with x**2, x, and 1
+    #create two additional columns for x for x^2 coef and constant coef
     one = ()
     x2 = ()
     for i in x:
@@ -33,7 +29,9 @@ def ransac(data):
     Xtran = np.matrix.transpose(X) # take transpose of X
     Xinv = np.linalg.pinv(np.matmul(X,Xtran)) # take inv of X*XT
     XY = np.matmul(y,Xtran)
+    #B is the matrix of coeficients (a,b,c in y = a*x^2 + b*x + c)
     B = np.matmul(XY,Xinv)
+    
     return B
     
 
@@ -78,7 +76,7 @@ while True:
     # threshold the image in binary
     unwarped_gray = cv.cvtColor(unwarped, cv.COLOR_BGR2GRAY)
     #unwarped_gray = cv.fastNlMeansDenoising(unwarped_gray)
-    ret, BW_lanes = cv.threshold(unwarped_gray, 200, 255, cv.THRESH_BINARY)
+    ret, BW_lanes = cv.threshold(unwarped_gray, 210, 255, cv.THRESH_BINARY)
     laplacian = cv.Laplacian(BW_lanes, cv.CV_64F)
     sobelx = cv.Sobel(BW_lanes, cv.CV_64F, 1, 0, ksize=5)  # x
     sobely = cv.Sobel(BW_lanes, cv.CV_64F, 0, 1, ksize=5)  # y
