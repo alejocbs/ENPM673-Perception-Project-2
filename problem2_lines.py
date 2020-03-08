@@ -2,7 +2,6 @@
 
 import numpy as np
 import cv2 as cv
-#include <opencv2/imgproc.hpp>
 import glob
 from matplotlib import pyplot as plt
 import helpers
