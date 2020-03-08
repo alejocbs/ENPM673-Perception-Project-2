@@ -2,9 +2,11 @@
 
 import numpy as np
 import cv2 as cv
+#include <opencv2/imgproc.hpp>
 import glob
 from matplotlib import pyplot as plt
 import helpers
+from PIL import Image
 
 
 def ransac(data):
@@ -44,7 +46,7 @@ img =[cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
 img2 = np.array(img)
 
 #num = int(input("Enter the number of the picture from 0-302: ")) # uncomment this line to use a different image
-num=220 # best image
+num=120 # best image
 #Camera Matrix
 K= np.array( [[9.037596e+02, 0.000000e+00, 6.957519e+02],[0.000000e+00, 9.019653e+02, 2.242509e+02], [0.000000e+00, 0.000000e+00, 1.000000e+00]])
 #distortion coefficients
@@ -88,24 +90,47 @@ while True:
     # perform Canny edge detection
     edges_region1 = cv.Canny(lane_region1, 50, 100, apertureSize=3)
     contours, hierarchy = cv.findContours(edges_region1, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    B = ransac(contours)
-    x_start1 = int(B[2] + 80)
-    x_end1 = int(B[0] * 700**2 + B[1] * 700 + B[2] + 80)
-
+    B1 = ransac(contours)
+  
     
     #second line
     lane_region2 = BW_lanes[:, 300:450]
     # perform Canny edge detection
     edges_region2 = cv.Canny(lane_region2, 50, 100, apertureSize=3)
     contours, hierarchy = cv.findContours(edges_region2, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    B = ransac(contours)
-    x_start2 = int(B[2] + 300)
-    x_end2 = int(B[0] * 700**2 + B[1] * 700 + B[2] + 300)
+    B2 = ransac(contours)
+    
 
-    #draw the lines
-    cv.line(BW_lanes, (x_start1,0), (x_end1,700), (255,0,0), thickness=10, lineType=8, shift=0)
-    cv.line(BW_lanes, (x_start2,0), (x_end2,700), (255,0,0), thickness=10, lineType=8, shift=0)
-    cv.imshow("BW Lanes", BW_lanes)
+    #draw the lines 
+    polys1 = []
+    polys2 = []
+    #create the points of the lines made from RANSAC function
+    for i in range(0,700,5):
+        x1 = int(B1[0] * i**2 + B1[1] * i + B1[2] + 80)
+        x2 = int(B2[0] * i**2 + B2[1] * i + B2[2] + 300)
+        polys1.append([x1,i])
+        polys2.append([x2,i])
+    #put the points into a useable array for the polylines function
+    polys1 = np.array(polys1,np.int32)
+    polys1 = polys1.reshape((-1,1,2))
+    polys2 = np.array(polys2,np.int32)
+    polys2 = polys2.reshape((-1,1,2))
+    #have to flip the second line points otherwise the polyfill won't work correctly
+    points = np.concatenate((polys1, np.flip(polys2,0)))
+    #create the actual lines of from the RANSAC
+    cv.polylines(unwarped,polys1, True, (0,0,255), thickness=20, lineType=8, shift=0)
+    cv.polylines(unwarped,polys2, True, (0,0,255), thickness=20, lineType=8, shift=0)
+    #fill in the space between the lines
+    cv.fillPoly(unwarped, [points], color=[0,100,0])
+    cv.imshow("unwarped", unwarped)
+    #rewarp the lanes back into the image
+    rewarped = cv.warpPerspective(unwarped, hinv, (file.shape[1], file.shape[0]))
+    cv.imshow("rewarped", rewarped)
+    
+##    final = Image.blend(file, rewarped, 0.5)
+##    cv.imshow("Final", final)
+
+
     
     #rewarp them
 ##    warp_zero = np.zeros_like(BW_lanes).astype(np.uint8)
