@@ -37,23 +37,23 @@ def ransac(data):
 #get the image
 img =[cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
 img2 = np.array(img)
-
 #num = int(input("Enter the number of the picture from 0-302: ")) # uncomment this line to use a different image
-num=220 # best image
+num=302 # best image
 #Camera Matrix
 K= np.array( [[9.037596e+02, 0.000000e+00, 6.957519e+02],[0.000000e+00, 9.019653e+02, 2.242509e+02], [0.000000e+00, 0.000000e+00, 1.000000e+00]])
 #distortion coefficients
 D = np.array([-3.639558e-01, 1.788651e-01, 6.029694e-04, -3.922424e-04, -5.382460e-02])
-while True:
+
+for img_num in range(0,302):
     #show the original image
-    file = img2[num]
+    file = img2[img_num]
     # 4 points on the original image's lane lines (two from each line)
     source = np.array([[0,440], [505,280], [725,280], [935,520]])
     # 4 new points line) for where the image should line up
     dest = np.array([[0, 700], [0, 0], [400, 0], [400, 700]])
     cv.line(file, (0,435), (505,285), (0,255,0), 1)
     cv.line(file, (723,280), (935,520), (0, 255, 0), 1)
-    cv.imshow("rezied src", file)
+    #cv.imshow("rezied src", file)
     h, w = file.shape[:2]
     newcameramtx, roi = cv.getOptimalNewCameraMatrix(K, D, (w, h), 1, (w, h))
     dst = cv.undistort(file, K, D, None, newcameramtx)
@@ -75,30 +75,44 @@ while True:
     unwarped_gray = cv.cvtColor(unwarped, cv.COLOR_BGR2GRAY)
     #unwarped_gray = cv.fastNlMeansDenoising(unwarped_gray)
     ret, BW_lanes = cv.threshold(unwarped_gray, 210, 255, cv.THRESH_BINARY)
-    laplacian = cv.Laplacian(BW_lanes, cv.CV_64F)
-    sobelx = cv.Sobel(BW_lanes, cv.CV_64F, 1, 0, ksize=5)  # x
-    sobely = cv.Sobel(BW_lanes, cv.CV_64F, 0, 1, ksize=5)  # y
+    histogram = np.sum(BW_lanes[BW_lanes.shape[0]//2:,:], axis=0)
+    #plt.plot(histogram)
+    
+##    laplacian = cv.Laplacian(BW_lanes, cv.CV_64F)
+##    sobelx = cv.Sobel(BW_lanes, cv.CV_64F, 1, 0, ksize=5)  # x
+##    sobely = cv.Sobel(BW_lanes, cv.CV_64F, 0, 1, ksize=5)  # y
 
 
 
 
-
-    #==== Drawing the lines ====
+    #==== Making the lines ====
     #first line
     lane_region1 = BW_lanes[:, 80:260]
     # perform Canny edge detection
     edges_region1 = cv.Canny(lane_region1, 50, 100, apertureSize=3)
     contours, hierarchy = cv.findContours(edges_region1, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    #get lane line coefficients and check if they are too far off from pervious frame
+    if img_num > 0:
+        B1_old = B1
     B1 = ransac(contours)
-  
-    
-    #second line
+    #if they are too far off, replace them with the previous frame
+    if img_num > 0:
+       if abs(B1[0]-B1_old[0]) > .00004 or abs(B1[1]-B1_old[1]) > .02:
+            B1 = B1_old
+
+   #second line
     lane_region2 = BW_lanes[:, 300:450]
     # perform Canny edge detection
     edges_region2 = cv.Canny(lane_region2, 50, 100, apertureSize=3)
     contours, hierarchy = cv.findContours(edges_region2, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    #get lane line coefficients and check if they are too far off from pervious frame
+    if img_num > 0:
+        B2_old = B2
     B2 = ransac(contours)
-    
+    #if they are too far off, replace them with the previous frame
+    if img_num > 0:
+        if abs(B2[0]-B2_old[0]) > .00004 or abs(B2[1]-B2_old[1]) > .02:
+            B2 = B2_old
 
     #DRAW THE LINES
     polys1 = []
@@ -134,6 +148,7 @@ while True:
 
     #overlap the lane detection on the original image
     final = cv.addWeighted(dst, 0.6, rewarped, 0.4, 0)
+    final = final[100:420, 100:1292]
     cv.imshow("Final", final)
 
 
@@ -145,7 +160,7 @@ while True:
 ##    cv.imshow("Sobely", sobely)
     # quit program if user presses escape or 'q'
 
-    key = cv.waitKey() & 0xFF
+    key = cv.waitKey(1) & 0xFF
     if key == 27 or key == ord("q"):
         break
 
