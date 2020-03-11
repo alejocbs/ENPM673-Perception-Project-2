@@ -6,7 +6,7 @@ import glob
 from matplotlib import pyplot as plt
 import helpers
 
-def ransac(data):
+def least_squares(data):
     #put the contour points into a list
     df = np.vstack(data).squeeze() 
     x = []
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         #get lane line coefficients and check if they are too far off from pervious frame
         if img_num > 0:
             B1_old = B1
-        B1 = ransac(contours)
+        B1 = least_squares(contours)
         #if they are too far off, replace them with the previous frame
         if img_num > 0:
            if abs(B1[0]-B1_old[0]) > .00004 or abs(B1[1]-B1_old[1]) > .02:
@@ -109,7 +109,7 @@ if __name__ == '__main__':
         #get lane line coefficients and check if they are too far off from pervious frame
         if img_num > 0:
             B2_old = B2
-        B2 = ransac(contours)
+        B2 = least_squares(contours)
         #if they are too far off, replace them with the previous frame
         if img_num > 0:
             if abs(B2[0]-B2_old[0]) > .00004 or abs(B2[1]-B2_old[1]) > .02:
