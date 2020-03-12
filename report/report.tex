@@ -5,7 +5,7 @@
 \usepackage{float}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{hyperref}
+
 \usepackage{subcaption}
 
 \makeatletter
@@ -71,7 +71,7 @@ The consistent challenge we had using the built in histogram equalization is tha
 		\caption{Equalized Histogram}
 \end{figure}
 
-Through some research and a desire to do better than what we got with the histogram equalization we were able to find another technique described that adjusts the "gamma" of the image. We found this method ultimately provided the best result of the methods we tested. Instead of trying to equalize the histogram, it maintains the same histogram shape but slides it to the right (increases) on the intensity value. Values starting with a lower intensity slide further to the right than those starting with a higher intensity value, which was also useful in this use case as we didn't want to over expose the light areas like the roads as it could ultimately wash out the lines as well. In effect, this increased the brightness of the overall image but maintains much of the same level of contrast from the source image. We were also able to maintain color correctness using this method as every color channel was adjusted at the same proportion, unlike when we equalized each color channel individually and merged them back together. The Gamma adjustment function does use an input to set how much to "turn it up". We set this value to 2.0.
+Through some research and a desire to do better than what we got with the histogram equalization we were able to find another technique described that adjusts the "gamma" of the image. We found this method ultimately provided the best result of the methods we tested. Instead of trying to equalize the histogram, it maintains the same histogram shape but slides it to the right (increases) on the intensity value. Values starting with a lower intensity slide further to the right than those starting with a higher intensity value, which was also useful in this use case as we didn't want to over expose the light areas like the roads as it could ultimately wash out the lines as well. In effect, this increased the brightness of the overall image but maintains much of the same level of contrast from the source image. We were also able to maintain color correctness using this method as every color channel was adjusted at the same proportion, unlike when we equalized each color channel individually and merged them back together.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width = 4in]{./images/gamma.png}
@@ -84,17 +84,6 @@ Through some research and a desire to do better than what we got with the histog
 	\end{center}
 		\caption{Gamma Adjustment Histogram}
 \end{figure}
-
-To see the difference between the two in a look up table for the first frame you can reference the table below.
-
-
-\begin{figure}[H]
-	\includegraphics[width = 5.5in]{./images/LookupTable.png}
-	\caption{Sample from a look up table comparing Histogram Equalization with the Gamma adjustment.}
-\end{figure}
-
-The video of this part of the project can be found here: \url{https://youtu.be/58KqZ3_qsso}
-
 \part*{Problem 2}
 \textbf{In this project we aim to do simple Lane Detection to mimic Lane Departure Warning systems used in Self Driving Cars. You are provided with two video sequences (both are required for this assignment), taken from a self driving car (click here to download). Your task will be to design an algorithm to detect lanes on the road, as well as estimate the road curvature to predict car turns.}
 
@@ -116,7 +105,18 @@ In order to detect the lanes and display them as virtual lines on the video, we 
 \end{figure}
 
 
-----Cristian, talk about the camera distortion and cam parameters here----
+To find the camera distortion, first, it is necessary to compute the camera matrix. K matrix contains the focal length, and the points of interest of the camera. Distortion coefficients are the values that indicates the sensor of the camera has not parallel lines. 
+
+\begin{equation}
+K = \begin{bmatrix}
+f_x&0&c_x\\
+0&f_y&c_y\\
+0&0&1\\
+\end{bmatrix};
+D=(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6]])
+\end{equation}
+
+
 
 After the frame has been corrected, we had to find the homography of the image using four points that we extracted from the road. Using the image with the straightest part of the road, we were able to find four points on the lanes to warp into a top down view. The four points make the visible green lines seen in Figure (10). 
 
@@ -157,6 +157,19 @@ Using the regions of the highest pixel concentration, we singled out those areas
 \end{figure}
 
 The regions selected are then passed through the Canny edge detection funciton from OpenCV. The image is inputted as well as the threshold for how distinct an edge must be to start and continue.
+
+In our application,two different thresholds were defined. One for right lines and left lines, this because the threshold on the right side was detecting unwanted pixels.
+\begin{figure}[H]
+	\begin{center}
+			\includegraphics[height=0.5\linewidth]{images/Lines}
+	\caption[Right and Left lines]{This lines has different thresholds to avoid unwanted points}
+	\label{fig:lines}
+	
+\end{center}
+
+\end{figure}
+
+
 
 Using the findContours OpenCV function on the 
 edges, we can find all of the coordinates of the edges. These coordinates can be saved in an array and passed through the least squares fitting function we created. 
@@ -229,6 +242,33 @@ The last step is combining the superimposed road with the rest of the image. We 
 		\caption{Combinging the original image with the superimposed lanes and mesh}
 \end{figure}
 
-The video for this part of the project can be found online here: \url{https://youtu.be/7pDyhAJwdCU}
+To calculate the line that predicts the behavior of the vehicle it was necessary to take the middle point between the new lines detected. So the average of this new points will remain in the center of the road.
 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{images/Center}
+	\caption[Behavior of the vehicle]{This line shows the guiding line already transformed to an unwarpped position.}
+	\label{fig:center}
+\end{figure}
+After finding this line was necessary to transform back to the original coordinates.
+\begin{figure}[H]
+	\includegraphics[width=0.9\linewidth]{images/Center2}
+	\caption[Line unwarpped]{This figure shows the line projected in the normal space.}
+	\label{fig:center2}
+\end{figure}
+
+Ones the line that tracks and shows the direction which the vehicle is moving to define were is it moving to a slope equation was used. If the result of this value was negative the car will be moving to the left or if the result of this equation was positive the car will be moving to the right.
+
+\begin{figure}[H]
+	\includegraphics[width=0.9\linewidth]{images/Turning}
+	\caption[Turning detection]{This image shows how the algorithm identifies which direction is the car moving to.}
+	\label{fig:turning}
+\end{figure}
+Lastly, to make a better detection on the line slope a kalman filter has been implemented which keep track of the slope and avoid the noise that could exist on the video.
+ 
+
+
+
+ 
 \end{document}
