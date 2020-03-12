@@ -16,6 +16,7 @@ if playback not in [0,1]:
 
 frame = helpers.frame()
 gamma = helpers.frame()
+hist = helpers.frame()
 while video.isOpened():
     # increment the frame number and print it
     print("Frame:",frame.increment_frame())
@@ -29,13 +30,15 @@ while video.isOpened():
     frame.resize(0.3)
     cv.imshow("rezied src", frame.image)
     gamma.image = frame.image.copy()
-
+    hist.image = frame.image.copy()
 
     gamma.image, table = gamma.adjust_gamma(2.0)
     # frame.smooth(3)
 
     cv.imshow("gamma",gamma.image)
 
+    hist.image = cv.equalizeHist(cv.cvtColor(hist.image,cv.COLOR_BGR2GRAY))
+    cv.imshow("Histogram Equalization", hist.image)
 
     key = cv.waitKey(playback) & 0xFF
     if key == 27 or key == ord("q"):

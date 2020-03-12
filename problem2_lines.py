@@ -6,6 +6,7 @@ import glob
 import kalman as k
 from matplotlib import pyplot as plt
 import helpers
+from os import path
 
 #  The following script uses a code taken from  https://github.com/lblackhall/pyconau2016.git,
 # Thanks to the user: lblackhall, This code computes a Kalman filter which was used to predict
@@ -24,9 +25,6 @@ if __name__ == '__main__':
     # Verbose: 1 to show only the final result, 2 to show the processed images
     verbose = 2
 
-    # Get the image
-    img = [cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
-    img2 = np.array(img) # opens all the images in an array
     # Camera Matrix
     K = np.array([[9.037596e+02, 0.000000e+00, 6.957519e+02], [0.000000e+00, 9.019653e+02, 2.242509e+02],
                   [0.000000e+00, 0.000000e+00, 1.000000e+00]])
@@ -41,10 +39,18 @@ if __name__ == '__main__':
 
     # Create and object for the kalman filter
     kalmanFilter = k.SingleStateKalmanFilter(A, B, C, x, P, Q, R)
+    # Get the image
+    img = [cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
+    img2 = np.array(img)  # opens all the images in an array
 
-    for img_num in range(0, 302):
+    for img_num in range(0, 303):
+        imgFile = "./Videos/data_1/data/"+str(img_num).zfill(10)+".png"
         # Show the original image
-        file = img2[img_num]
+        if path.exists(imgFile):
+            file = cv.imread(imgFile)
+        else:
+            print("File Not Found:",imgFile)
+            break
         # 4 points on the original image's lane lines (two from each line)
         source = np.array([[0, 435], [505, 285], [723, 280], [935, 520]])
         # 4 new points line) for where the image should line up
@@ -169,9 +175,9 @@ if __name__ == '__main__':
         m = kalmanFilter.current_state()
         # Conditions to considering a turning condition of not
         print(m)
-        if 0 < m < 80:
+        if 0 < m < 50:
             text = "Turning right"
-        elif -80 < m < 0:
+        elif -50 < m < 0:
             text = "Turning left"
         else:
             text = "Going straight"
@@ -206,17 +212,18 @@ if __name__ == '__main__':
 
         if verbose > 0:
             cv.imshow("Final", final)
+            cv.moveWindow("Final", 20, 20)
         if verbose>2:
             imgAll = np.hstack([ edges_region2, sobelx])
             cv.imshow("imgAll", imgAll)
-            cv.moveWindow("imgAll", 1000, 50)
+            cv.moveWindow("imgAll", 10, 10)
             cv.imshow("Canny", edges_region1)
             cv.imshow("laplacian", laplacian)
             cv.imshow("Sobelx", sobelx)
             cv.imshow("Sobely", sobely)
 
         # Quit program if user presses escape or 'q'
-        key = cv.waitKey(1) & 0xFF
+        key = cv.waitKey(20) & 0xFF
         if key == 27 or key == ord("q"):
             break
 
