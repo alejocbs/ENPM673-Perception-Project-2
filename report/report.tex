@@ -5,7 +5,7 @@
 \usepackage{float}
 \usepackage{amsmath}
 \usepackage{graphicx}
-
+\usepackage{hyperref}
 \usepackage{subcaption}
 
 \makeatletter
@@ -84,6 +84,17 @@ Through some research and a desire to do better than what we got with the histog
 	\end{center}
 		\caption{Gamma Adjustment Histogram}
 \end{figure}
+
+To see the difference between the two in a look up table for the first frame you can reference the table below.
+
+
+\begin{figure}[H]
+	\includegraphics[width = 5.5in]{./images/LookupTable.png}
+	\caption{Sample from a look up table comparing Histogram Equalization with the Gamma adjustment.}
+\end{figure}
+
+The video of this part of the project can be found here: \url{https://youtu.be/58KqZ3_qsso}
+
 \part*{Problem 2}
 \textbf{In this project we aim to do simple Lane Detection to mimic Lane Departure Warning systems used in Self Driving Cars. You are provided with two video sequences (both are required for this assignment), taken from a self driving car (click here to download). Your task will be to design an algorithm to detect lanes on the road, as well as estimate the road curvature to predict car turns.}
 
@@ -218,8 +229,6 @@ The output of the function is the coefficents of the line fitting function. Usin
 		\caption{Applying predicted lines and mesh between the lanes to the top down view}
 \end{figure}
 
------Extra middle line stuff goes here-----
-
 
 Early in the report we stated that there was difficulty with unwanted objects affecting our program, and the solution to this was simple. Since the road should drastically change curvature within one frame, we created a threshold. If the curveature changed more than the thresholded value, then program was told to use the previous curve parameters. Given more time we could have come up with a more elegant solution that segmented the image better, but this process works well for us.
 
@@ -239,7 +248,7 @@ The last step is combining the superimposed road with the rest of the image. We 
 	\begin{center}
 		\includegraphics[width = 4in]{./images/Images2/image7.png}
 	\end{center}
-		\caption{Combinging the original image with the superimposed lanes and mesh}
+		\caption{Combining the original image with the superimposed lanes and mesh}
 \end{figure}
 
 To calculate the line that predicts the behavior of the vehicle it was necessary to take the middle point between the new lines detected. So the average of this new points will remain in the center of the road.
@@ -267,8 +276,6 @@ Ones the line that tracks and shows the direction which the vehicle is moving to
 \end{figure}
 Lastly, to make a better detection on the line slope a kalman filter has been implemented which keep track of the slope and avoid the noise that could exist on the video.
  
-
-
-
+The video for this part of the project can be found online here: \url{https://youtu.be/7pDyhAJwdCU}
  
 \end{document}
