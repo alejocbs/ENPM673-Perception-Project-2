@@ -49,6 +49,32 @@ def warp(matrix, M):
             aux[ypri, xpri, :] = warp['colors'][i]
     return aux
 
+def ransac(data):
+    # put the contour points into a list
+    df = np.vstack(data).squeeze()
+    x = []
+    y = []
+    for i in range(0, len(df) - 1):
+        x.append(df[i][1])
+        y.append(df[i][0])
+
+    # create two additional columns for x for x^2 coef and constant coef
+    one = ()
+    x2 = ()
+    for i in x:
+        one = np.append(one, 1)
+        x2 = np.append(x2, i ** 2)
+    X = [x2, x, one]  # put x**2, x, and 1 all into the same matrix
+    X = np.array(X)
+
+    # matrix math
+    Xtran = np.matrix.transpose(X)  # take transpose of X
+    Xinv = np.linalg.pinv(np.matmul(X, Xtran))  # take inv of X*XT
+    XY = np.matmul(y, Xtran)
+    # B is the matrix of coeficients (a,b,c in y = a*x^2 + b*x + c)
+    B = np.matmul(XY, Xinv)
+
+    return B
 
 
 #This class exists to handle all processing related to a specific video frame
