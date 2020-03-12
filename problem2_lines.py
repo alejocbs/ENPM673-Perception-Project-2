@@ -225,7 +225,7 @@ if __name__ == '__main__':
             cv.imshow("Sobely", sobely)
 
         # Quit program if user presses escape or 'q'
-        key = cv.waitKey(0) & 0xFF
+        key = cv.waitKey(20) & 0xFF
         if key == 27 or key == ord("q"):
             break
 
