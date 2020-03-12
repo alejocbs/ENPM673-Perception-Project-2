@@ -23,7 +23,7 @@ P = 1  # Initial covariance
 
 if __name__ == '__main__':
     # Verbose: 1 to show only the final result, 2 to show the processed images
-    verbose = 2
+    verbose = 3
 
     # Camera Matrix
     K = np.array([[9.037596e+02, 0.000000e+00, 6.957519e+02], [0.000000e+00, 9.019653e+02, 2.242509e+02],
@@ -84,10 +84,6 @@ if __name__ == '__main__':
         # separate the lines of the road on left and right to apply different threshold on them.
         ret1, BW_lanesRight = cv.threshold(unwarpedGray, 200, 255, cv.THRESH_BINARY)
         ret, BW_lanesLeft = cv.threshold(unwarpedGray, 210, 255, cv.THRESH_BINARY)
-        if verbose>2:
-            laplacian = cv.Laplacian(BW_lanesRight, cv.CV_64F)
-            sobelx = cv.Sobel(lane_region2, cv.CV_64F, 1, 0, ksize=5)  # x
-            sobely = cv.Sobel(BW_lanesRight, cv.CV_64F, 0, 1, ksize=5)  # y
 
         # MAKING THE LINES
         # First line
@@ -124,6 +120,11 @@ if __name__ == '__main__':
         # Perform Canny edge detection on the right lane
         edges_region2 = cv.Canny(lane_region2, 50, 100, apertureSize=3)
         contours, hierarchy = cv.findContours(edges_region2, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        if verbose>3:
+            laplacian = cv.Laplacian(BW_lanesRight, cv.CV_64F)
+            sobelx = cv.Sobel(lane_region2, cv.CV_64F, 1, 0, ksize=5)  # x
+            sobely = cv.Sobel(BW_lanesRight, cv.CV_64F, 0, 1, ksize=5)  # y
+
         if verbose>2:
             # Test sobelx for behaivor
             sobelx = cv.Sobel(lane_region2, cv.CV_64F, 1, 0, ksize=5)  # x
@@ -214,7 +215,7 @@ if __name__ == '__main__':
         if verbose > 0:
             cv.imshow("Final", final)
             cv.moveWindow("Final", 20, 20)
-        if verbose>2:
+        if verbose>3:
             imgAll = np.hstack([ edges_region2, sobelx])
             cv.imshow("imgAll", imgAll)
             cv.moveWindow("imgAll", 10, 10)
@@ -224,7 +225,7 @@ if __name__ == '__main__':
             cv.imshow("Sobely", sobely)
 
         # Quit program if user presses escape or 'q'
-        key = cv.waitKey(20) & 0xFF
+        key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):
             break
 
