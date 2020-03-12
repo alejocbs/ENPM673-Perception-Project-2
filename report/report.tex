@@ -5,10 +5,18 @@
 \usepackage{float}
 \usepackage{amsmath}
 \usepackage{graphicx}
-
+\usepackage{hyperref}
 \usepackage{subcaption}
 
 \makeatletter
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+\urlstyle{same}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 %% Because html converters don't know tabularnewline
@@ -84,6 +92,8 @@ Through some research and a desire to do better than what we got with the histog
 	\end{center}
 		\caption{Gamma Adjustment Histogram}
 \end{figure}
+
+We recorded a video demonstrating the histogram equalization and the gamma adjustment techniques for the entire video sequence: \url{https://youtu.be/58KqZ3_qsso}
 \part*{Problem 2}
 \textbf{In this project we aim to do simple Lane Detection to mimic Lane Departure Warning systems used in Self Driving Cars. You are provided with two video sequences (both are required for this assignment), taken from a self driving car (click here to download). Your task will be to design an algorithm to detect lanes on the road, as well as estimate the road curvature to predict car turns.}
 \end{document}
