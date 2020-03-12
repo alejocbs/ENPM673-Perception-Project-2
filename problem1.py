@@ -13,6 +13,8 @@ playback = int(input("0 - hit a key to advance each frame\n1 - the next frame is
 if playback not in [0,1]:
     print("Unknown value,", playback)
     exit(0)
+elif playback == 1:
+    playback=20
 
 frame = helpers.frame()
 gamma = helpers.frame()

@@ -10,14 +10,6 @@
 
 \makeatletter
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-}
-\urlstyle{same}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 %% Because html converters don't know tabularnewline
 \providecommand{\tabularnewline}{\\}
@@ -35,7 +27,7 @@
 \textbf{Here, we aim to improve the quality of the video sequence provided above. This is a video recording of a highway during night. Most of the Computer Vision pipelines for lane detection or other self-driving tasks require good lighting conditions and color information for detecting good features. A lot of pre-processing is required in such scenarios where lighting conditions are poor. Now, using the techniques taught in class your aim is to enhance the contrast and improve the visual appearance of the video sequence. You can use any in-built functions for the same.}
 \bigskip
 
-The provided source video was extremely dark. We resize the image to both speed up our adjustments and make it easier to see the changes side by side with the image source.
+The provided source video was extremely dark. We resized the image to both speed up our adjustments and make it easier to see the changes side by side with the image source.
 
 \begin{figure}[H]
 	\centering
@@ -79,7 +71,7 @@ The consistent challenge we had using the built in histogram equalization is tha
 		\caption{Equalized Histogram}
 \end{figure}
 
-Through some research and a desire to do better than what we got with the histogram equalization we were able to find another technique described that adjusts the "gamma" of the image. We found this method ultimately provided the best result of the methods we tested. Instead of trying to equalize the histogram, it maintains the same histogram shape but slides it to the right (increases) on the intensity value. Values starting with a lower intensity slide further to the right than those starting with a higher intensity value, which was also useful in this use case as we didn't want to over expose the light areas like the roads as it could ultimately wash out the lines as well. In effect, this increased the brightness of the overall image but maintains much of the same level of contrast from the source image. We were also able to maintain color correctness using this method as every color channel was adjusted at the same proportion, unlike when we equalized each color channel individually and merged them back together.
+Through some research and a desire to do better than what we got with the histogram equalization we were able to find another technique described that adjusts the "gamma" of the image. We found this method ultimately provided the best result of the methods we tested. Instead of trying to equalize the histogram, it maintains the same histogram shape but slides it to the right (increases) on the intensity value. Values starting with a lower intensity slide further to the right than those starting with a higher intensity value, which was also useful in this use case as we didn't want to over expose the light areas like the roads as it could ultimately wash out the lines as well. In effect, this increased the brightness of the overall image but maintains much of the same level of contrast from the source image. We were also able to maintain color correctness using this method as every color channel was adjusted at the same proportion, unlike when we equalized each color channel individually and merged them back together. The Gamma adjustment function does use an input to set how much to "turn it up". We set this value to 2.0.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width = 4in]{./images/gamma.png}
@@ -93,7 +85,150 @@ Through some research and a desire to do better than what we got with the histog
 		\caption{Gamma Adjustment Histogram}
 \end{figure}
 
-We recorded a video demonstrating the histogram equalization and the gamma adjustment techniques for the entire video sequence: \url{https://youtu.be/58KqZ3_qsso}
+To see the difference between the two in a look up table for the first frame you can reference the table below.
+
+
+\begin{figure}[H]
+	\includegraphics[width = 5.5in]{./images/LookupTable.png}
+	\caption{Sample from a look up table comparing Histogram Equalization with the Gamma adjustment.}
+\end{figure}
+
+The video of this part of the project can be found here: \url{https://youtu.be/58KqZ3_qsso}
+
 \part*{Problem 2}
 \textbf{In this project we aim to do simple Lane Detection to mimic Lane Departure Warning systems used in Self Driving Cars. You are provided with two video sequences (both are required for this assignment), taken from a self driving car (click here to download). Your task will be to design an algorithm to detect lanes on the road, as well as estimate the road curvature to predict car turns.}
+
+In order to detect the lanes and display them as virtual lines on the video, we must correct our camera distortion. 
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 4in]{./images/Images2/image1.png}
+	\end{center}
+		\caption{Original frame of the road}
+\end{figure}
+
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 4in]{./images/Images2/image2.png}
+	\end{center}
+		\caption{Undistorted frame after K matrix has been applied}
+\end{figure}
+
+
+----Cristian, talk about the camera distortion and cam parameters here----
+
+After the frame has been corrected, we had to find the homography of the image using four points that we extracted from the road. Using the image with the straightest part of the road, we were able to find four points on the lanes to warp into a top down view. The four points make the visible green lines seen in Figure (10). 
+
+The next step was making the destination points which were any arbitrary points in the shape of a rectangle. With these two sets of 4 points and the OpenCV findHomography function, we created the homography matrix H as well as the inverse homography Matrix H inverse for later use. Then using the built in warp function from OpenCV, we input the image from Figure (10), the H matrix, and the shape of the new image. This gave us Figure (11), the unwarped road.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[height = 2in]{./images/Images2/image3.png}
+	\end{center}
+		\caption{Unwarped image of the road (top down view) after using Homography}
+\end{figure}
+
+The next step was thresholding the unwarped road. We found that takinga all pixel values between 210 and 255 gave the best binary image with only the lane lines showing seen in Figure (12). Some objects still made it through, like a couple of road markers and pickets, which caused a problem for us later on.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[height = 2in]{./images/Images2/BW_lanes.png}
+	\end{center}
+		\caption{Binary image of the top down view}
+\end{figure}
+
+In order to create the lines, we first have to figure out which parts of the image are the lanes. We used a historgram to do this. Figure (13) shows the histogram of Figure (12) where the x-axis is the width of the image and the y-axis is the total value of pixels in that column.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 4in]{./images/Images2/image4.png}
+	\end{center}
+		\caption{Histogram of the binary top down view of the road}
+\end{figure}
+
+Using the regions of the highest pixel concentration, we singled out those areas to be used for edge detection and then least squares fitting.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[height = 2in]{./images/Images2/edges.png}
+	\end{center}
+		\caption{The edges from one lane line}
+\end{figure}
+
+The regions selected are then passed through the Canny edge detection funciton from OpenCV. The image is inputted as well as the threshold for how distinct an edge must be to start and continue.
+
+Using the findContours OpenCV function on the 
+edges, we can find all of the coordinates of the edges. These coordinates can be saved in an array and passed through the least squares fitting function we created. 
+
+In order to find the best curve fit for the lanes, we used least squares line fitting. We switched the x and y coordiantes because we are trying to fit the vertical lines. 
+
+\begin{equation}
+X = 
+\begin{bmatrix}
+x_1\\
+x_2\\
+\vdots\\
+x_{n}\\
+\end{bmatrix}
+\end{equation}
+\begin{equation}
+Y = 
+\begin{bmatrix}
+y^2_1 & y_1 & 1\\
+y^2_2 &  y_2 & 1\\
+\vdots & \vdots & \vdots\\
+y^2_{n} & y_{n} & 1\\
+\end{bmatrix}
+\end{equation}
+\begin{equation}
+B = 
+\begin{bmatrix}
+a\\
+b\\
+c\\
+\end{bmatrix}
+\end{equation}
+
+We use linear algebra to find the matrix B so that we can fill in the coefficients for the best curve of fit.
+
+\begin{equation}
+x = a * y^2 + b * y + c
+\end{equation}
+
+The output of the function is the coefficents of the line fitting function. Using the coefficients, we can use the polyfit function to draw the lanes onto the original top down view of the road. The polyfill function fills in the space between the two lines. Figure (14) shows this.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[height = 2in]{./images/Images2/image5.png}
+	\end{center}
+		\caption{Applying predicted lines and mesh between the lanes to the top down view}
+\end{figure}
+
+-----Extra middle line stuff goes here-----
+
+
+Early in the report we stated that there was difficulty with unwanted objects affecting our program, and the solution to this was simple. Since the road should drastically change curvature within one frame, we created a threshold. If the curveature changed more than the thresholded value, then program was told to use the previous curve parameters. Given more time we could have come up with a more elegant solution that segmented the image better, but this process works well for us.
+
+The next step in the pipeline was putting the superimposed lane back into the orginal undistorted image. This is where the H inverse comes into play. We use the warpPerspective function again with superimposed top down view and the H inverse matrix. This gives us figure (15), a normal perspective view of the road of just the road.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 4in]{./images/Images2/image6.png}
+	\end{center}
+		\caption{Rewarping the top down view back to the original dimensions}
+\end{figure}
+
+The last step is combining the superimposed road with the rest of the image. We used the addWeighted OpenCV function to mix the two images allowing the final image, Figure (16), two look like the normal frame with lines and mesh showing the detected lane.
+
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 4in]{./images/Images2/image7.png}
+	\end{center}
+		\caption{Combinging the original image with the superimposed lanes and mesh}
+\end{figure}
+
+The video for this part of the project can be found online here: \url{https://youtu.be/7pDyhAJwdCU}
+
 \end{document}
