@@ -40,8 +40,8 @@ if __name__ == '__main__':
     # Create and object for the kalman filter
     kalmanFilter = k.SingleStateKalmanFilter(A, B, C, x, P, Q, R)
     # Get the image
-    img = [cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
-    img2 = np.array(img)  # opens all the images in an array
+    #img = [cv.imread(File) for File in glob.glob("./Videos/data_1/data/*.png")]
+    #img2 = np.array(img)  # opens all the images in an array
 
     for img_num in range(0, 303):
         imgFile = "./Videos/data_1/data/"+str(img_num).zfill(10)+".png"
@@ -51,6 +51,7 @@ if __name__ == '__main__':
         else:
             print("File Not Found:",imgFile)
             break
+        #file=img2[img_num]
         # 4 points on the original image's lane lines (two from each line)
         source = np.array([[0, 435], [505, 285], [723, 280], [935, 520]])
         # 4 new points line) for where the image should line up
@@ -227,5 +228,5 @@ if __name__ == '__main__':
         if key == 27 or key == ord("q"):
             break
 
-    del img, img2, final
+    del final
     cv.destroyAllWindows()
