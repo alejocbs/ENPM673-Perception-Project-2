@@ -24,10 +24,11 @@ The helpers.py is a library of helper functions used by both the other files.
 All the files need to be in the same directory. you also need the video files and reference images to be in the same
 folder structure
 
--[TOP_DIRECTORY]
+-[Code]
   --problem1.py
   --problem2_lines.py
   --helpers.py
+  --kalman.py
   --Videos
     ---NightDrive-2689.mp4
     ---data1
@@ -35,10 +36,9 @@ folder structure
     ---data2
         ----Camera parameters
         ----challenge_video.mp4
-  --report.pdf
 
-The code will be zipped in this structure and it is best to extract it and run it without adjusting the folder structure.
-If something gets out of place use this as reference to correct it.
+The video files will not be included in our zip file due to size constraints, but must be set up in this structure in order for the code to work.
+We did not get our solution fully implemented for the challenge video as we struggled to consistently identify the right lane marker.
 
 ### Execution
 These scripts can be executed using python 3 in the normal way:
