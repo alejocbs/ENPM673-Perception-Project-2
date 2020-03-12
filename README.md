@@ -21,7 +21,7 @@ pip3 install opencv-python
 The helpers.py is a library of helper functions used by both the other files.
 
 ### Directory Configuration
-All the files need to be in the same directory. you also need the video files and reference images to be in the same
+All the files need to be in the same directory. you also need the video files to be in the same
 folder structure
 
 -[Code]
@@ -31,9 +31,9 @@ folder structure
   --kalman.py
   --Videos
     ---NightDrive-2689.mp4
-    ---data1
+    ---data_1
         ----Camera parameters and individual frames using 10 digits and .png extension. (e.g. 0000000024.png
-    ---data2
+    ---data_2
         ----Camera parameters
         ----challenge_video.mp4
 
