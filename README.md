@@ -39,6 +39,7 @@ folder structure
 
 The video files will not be included in our zip file due to size constraints, but must be set up in this structure in order for the code to work.
 We did not get our solution fully implemented for the challenge video as we struggled to consistently identify the right lane marker.
+Note: Kalman filter code taken from  https://github.com/lblackhall/pyconau2016.git, thanks to the user: lblackhall, This code computes a Kalman filter which was used to predict the direction where the car is going.
 
 ### Execution
 These scripts can be executed using python 3 in the normal way:
